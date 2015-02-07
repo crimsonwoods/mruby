@@ -270,6 +270,9 @@ mrb_close(mrb_state *mrb)
   mrb_free(mrb, MRB_GET_THREAD_CONTEXT(mrb)->arena);
 #endif
   mrb_free(mrb, MRB_GET_THREAD_CONTEXT(mrb));
+#ifdef MRB_USE_MUTEX_API
+  mrb_free(mrb, MRB_GET_VM(mrb)->mutex_api);
+#endif
   mrb_free(mrb, MRB_GET_VM(mrb));
   mrb_free(mrb, mrb);
 }
