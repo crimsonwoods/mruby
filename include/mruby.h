@@ -174,6 +174,10 @@ typedef struct mrb_vm_context {
   mrb_atexit_func *atexit_stack;
 #endif
   mrb_int atexit_stack_len;
+
+#ifdef MRB_USE_MUTEX_API
+  struct mrb_mutex_api_t *mutex_api;
+#endif
 } mrb_vm_context;
 
 /*
