@@ -8,7 +8,7 @@
 static struct mrb_irep *
 get_closure_irep(mrb_state *mrb, int level)
 {
-  struct mrb_context *c = mrb->c;
+  struct mrb_context *c = MRB_GET_CONTEXT(mrb);
   struct REnv *e = c->ci[-1].proc->env;
   struct RProc *proc;
 
@@ -137,7 +137,7 @@ create_proc_from_string(mrb_state *mrb, char *s, int len, mrb_value binding, cha
   struct mrb_parser_state *p;
   struct RProc *proc;
   struct REnv *e;
-  struct mrb_context *c = mrb->c;
+  struct mrb_context *c = MRB_GET_CONTEXT(mrb);
 
   if (!mrb_nil_p(binding)) {
     mrb_raise(mrb, E_ARGUMENT_ERROR, "Binding of eval must be nil.");
@@ -210,8 +210,8 @@ f_eval(mrb_state *mrb, mrb_value self)
 
   proc = create_proc_from_string(mrb, s, len, binding, file, line);
   ret = mrb_toplevel_run(mrb, proc);
-  if (mrb->exc) {
-    mrb_exc_raise(mrb, mrb_obj_value(mrb->exc));
+  if (MRB_GET_VM(mrb)->exc) {
+    mrb_exc_raise(mrb, mrb_obj_value(MRB_GET_VM(mrb)->exc));
   }
 
   return ret;
@@ -224,7 +224,7 @@ mrb_value mrb_obj_instance_eval(mrb_state *mrb, mrb_value self);
 static mrb_value
 f_instance_eval(mrb_state *mrb, mrb_value self)
 {
-  struct mrb_context *c = mrb->c;
+  struct mrb_context *c = MRB_GET_CONTEXT(mrb);
   mrb_value b;
   mrb_int argc; mrb_value *argv;
 
@@ -252,8 +252,8 @@ f_instance_eval(mrb_state *mrb, mrb_value self)
 void
 mrb_mruby_eval_gem_init(mrb_state* mrb)
 {
-  mrb_define_module_function(mrb, mrb->kernel_module, "eval", f_eval, MRB_ARGS_ARG(1, 3));
-  mrb_define_method(mrb, mrb->kernel_module, "instance_eval", f_instance_eval, MRB_ARGS_ARG(1, 2));
+  mrb_define_module_function(mrb, MRB_GET_VM(mrb)->kernel_module, "eval", f_eval, MRB_ARGS_ARG(1, 3));
+  mrb_define_method(mrb, MRB_GET_VM(mrb)->kernel_module, "instance_eval", f_instance_eval, MRB_ARGS_ARG(1, 2));
 }
 
 void
