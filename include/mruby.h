@@ -56,6 +56,10 @@ typedef void* (*mrb_allocf) (struct mrb_state *mrb, void*, size_t, void *ud);
 #define MRB_FIXED_STATE_ATEXIT_STACK_SIZE 5
 #endif
 
+#ifndef MRB_FIXED_THREAD_SIZE
+#define MRB_FIXED_THREAD_SIZE 8
+#endif
+
 typedef struct {
   mrb_sym mid;
   struct RProc *proc;
@@ -185,6 +189,9 @@ typedef struct mrb_vm_context {
 #endif
 #ifdef MRB_USE_THREAD_API
   struct mrb_thread_api_t *thread_api;
+  struct mrb_thread_context *threads[MRB_FIXED_THREAD_SIZE];
+  mrb_int thread_count;
+  mrb_int thread_index;
 #endif
 } mrb_vm_context;
 
