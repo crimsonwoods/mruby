@@ -1,16 +1,18 @@
 #ifdef MRB_USE_GVL_API
 
+#ifndef MRB_USE_MUTEX_API
+#error Mutex API is required.
+#endif
+
 #include "mruby/gvl.h"
+#include "mruby/mutex.h"
+#include "mruby/thread.h"
+#include "mruby/atomic.h"
 
 #ifdef MRB_GVL_DEBUG
 #undef mrb_gvl_acquire
 #undef mrb_gvl_release
 #endif
-
-#ifndef MRB_USE_MUTEX_API
-#  error Mutex API is required.
-#else
-#  include "mruby/mutex.h"
 
 struct mrb_gvl_t {
   mrb_mutex_t *mutex;
@@ -43,7 +45,7 @@ mrb_gvl_acquire(mrb_state *mrb)
     return;
   }
   mrb_mutex_lock(mrb, MRB_GET_VM(mrb)->gvl->mutex);
-  MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired = TRUE;
+  mrb_atomic_bool_store(&MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired, TRUE);
 }
 
 MRB_API void
@@ -53,14 +55,17 @@ mrb_gvl_release(mrb_state *mrb)
     return;
   }
   mrb_mutex_unlock(mrb, MRB_GET_VM(mrb)->gvl->mutex);
-  MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired = FALSE;
+  mrb_atomic_bool_store(&MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired, FALSE);
 }
 
 MRB_API void
 mrb_gvl_yield(mrb_state *mrb)
 {
   mrb_gvl_release(mrb);
-  // TODO implement
+#ifdef MRB_USE_THREAD_API
+  mrb_atomic_bool_store(&MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_releasing_requested, FALSE);
+  mrb_thread_sleep(mrb, 0);
+#endif
   mrb_gvl_acquire(mrb);
 }
 
@@ -90,5 +95,22 @@ mrb_gvl_release_dbg(mrb_state *mrb, char const *file, int line, char const *func
   mrb_gvl_release(mrb);
 }
 
-#  endif
+MRB_API void
+mrb_blocking_region_begin(mrb_state *mrb, mrb_blocking_region_t *region)
+{
+  const mrb_bool is_gvl_acquired = mrb_gvl_is_acquired(mrb);
+  if (is_gvl_acquired) {
+    mrb_gvl_release(mrb);
+  }
+  region->is_gvl_released = is_gvl_acquired;
+}
+
+MRB_API void
+mrb_blocking_region_end(mrb_state *mrb, mrb_blocking_region_t *region)
+{
+  if (region->is_gvl_released) {
+    mrb_gvl_acquire(mrb);
+  }
+}
+
 #endif
