@@ -1,5 +1,6 @@
 #ifdef MRB_USE_THREAD_API
 #include "mruby/thread.h"
+#include "mruby/atomic.h"
 #include <errno.h>
 
 MRB_API void
@@ -99,4 +100,51 @@ mrb_thread_sleep(mrb_state *mrb, uint32_t millis)
   return MRB_GET_VM(mrb)->thread_api->thread_sleep(mrb, millis);
 }
 
+#ifdef MRB_USE_GVL_API
+
+static void*
+timer_thread(mrb_state *mrb, void *arg)
+{
+  size_t i;
+  while (!mrb_atomic_bool_load(&MRB_GET_VM(mrb)->stop_timer_thread)) {
+    mrb_thread_sleep(mrb, 1);
+    if (MRB_GET_VM(mrb)->thread_count <= 1) {
+      continue;
+    }
+    for (i = 0; i < MRB_FIXED_THREAD_SIZE; ++i) {
+      mrb_thread_context * const context = MRB_GET_VM(mrb)->threads[i];
+      if (!context) {
+        continue;
+      }
+      if (!mrb_atomic_bool_load(&context->flag_gvl_acquired)) {
+        continue;
+      }
+      mrb_atomic_bool_store(&context->flag_gvl_releasing_requested, TRUE);
+    }
+  }
+  return 0;
+}
+
+MRB_API void
+mrb_timer_thread_create(mrb_state *mrb)
+{
+  if (MRB_GET_VM(mrb)->timer_thread) {
+    return;
+  }
+  MRB_GET_VM(mrb)->timer_thread = mrb_thread_create(mrb, NULL, timer_thread, NULL);
+}
+
+MRB_API void
+mrb_timer_thread_destroy(mrb_state *mrb)
+{
+  if (!MRB_GET_VM(mrb)->timer_thread) {
+    return;
+  }
+  mrb_atomic_bool_store(&MRB_GET_VM(mrb)->stop_timer_thread, TRUE);
+  mrb_thread_join(mrb, MRB_GET_VM(mrb)->timer_thread, NULL);
+  mrb_thread_destroy(mrb, MRB_GET_VM(mrb)->timer_thread);
+  MRB_GET_VM(mrb)->timer_thread = NULL;
+}
+
+#endif
 #endif
