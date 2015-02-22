@@ -129,10 +129,15 @@ static const mrb_thread_api_t pthread_api = {
   .thread_sleep        = mrb_usleep,
 };
 
+extern void mrb_pthread_mutex_init_api(mrb_state *mrb);
+
 void
 mrb_mruby_pthread_gem_init(mrb_state *mrb)
 {
   mrb_thread_init_api(mrb, &pthread_api);
+#ifdef MRB_USE_MUTEX_API
+  mrb_pthread_mutex_init_api(mrb);
+#endif
 }
 
 void
