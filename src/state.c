@@ -70,10 +70,6 @@ mrb_open_core(mrb_allocf f, void *ud)
 
   mrb_init_heap(mrb);
 
-#ifdef MRB_USE_GVL_API
-  mrb_gvl_init(mrb);
-#endif
-
   mrb_init_core(mrb);
 
   return mrb;
@@ -156,6 +152,9 @@ mrb_open_allocf(mrb_allocf f, void *ud)
 #ifndef DISABLE_GEMS
   mrb_init_mrbgems(mrb);
   mrb_gc_arena_restore(mrb, 0);
+#endif
+#ifdef MRB_USE_GVL_API
+  mrb_gvl_init(mrb);
 #endif
 #if defined(MRB_USE_THREAD_API) && defined(MRB_USE_GVL_API)
   mrb_timer_thread_create(mrb);
