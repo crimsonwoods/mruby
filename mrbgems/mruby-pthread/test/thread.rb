@@ -3,7 +3,7 @@ assert('Thread.new') do
     'test'
   end
   assert_false t.nil?
-  assert_equal('test') { t.join }
+  assert_equal 'test', t.join
 end
 
 assert('Thread.join') do
@@ -12,16 +12,6 @@ assert('Thread.join') do
   end
   assert_nil t.join
 end
-
-#
-# Exception is currently not supported.
-#
-#assert('Thread.join with exception') do
-#  t = Thread.new do
-#    raise 'error'
-#  end
-#  assert_false t.join.nil?
-#end
 
 assert('multiple threads') do
   t1 = Thread.new do
@@ -37,11 +27,11 @@ assert('multiple threads') do
       i = i + 1
     end
   end
-  assert_equal(100) { t1.join }
-  assert_equal(200) { t2.join }
+  assert_equal 100, t1.join
+  assert_equal 200, t2.join
 end
 
-assert('arg') do
+assert('parameterized thread') do
   n = 1
   t1 = Thread.new(n) do |x|
     10.times do
@@ -56,6 +46,80 @@ assert('arg') do
     end
     x
   end
-  assert_equal(11) { t1.join }
-  assert_equal(21) { t2.join }
+  assert_equal 11, t1.join
+  assert_equal 21, t2.join
 end
+
+assert('GC working while thread is running') do
+  t = Thread.new() do
+    x = 0
+    10000.times do
+      x = x + 1
+    end
+    x
+  end
+  assert_equal 10000, t.join
+end
+
+assert('access to global variables') do
+  $gvar = 10
+  t = Thread.new() do
+    $gvar = $gvar + 1
+  end
+  assert_equal 11, t.join
+  assert_equal 11, $gvar
+end
+
+assert('access to global variables from multiple threads') do
+  $gvar = 0
+  t1 = Thread.new() do
+    100.times do
+      $gvar = $gvar + 1
+    end
+  end
+  t2 = Thread.new() do
+    100.times do
+      $gvar = $gvar + 1
+    end
+  end
+  t1.join
+  t2.join
+  assert_true $gvar > 0
+  assert_true $gvar <= 200
+end
+
+assert('access to symbol table') do
+  class Test
+    def test
+      1
+    end
+  end
+  t = Thread.new(Test.new, :test) do |obj, sym|
+    obj.send sym
+  end
+  assert_equal 1, t.join
+end
+
+#
+# Exception is currently not supported.
+#
+#assert('Thread.join with exception') do
+#  t = Thread.new do
+#    raise 'error'
+#  end
+#  assert_false t.join.nil?
+#end
+
+#
+# Accssing to captured variables into block is currently not supported.
+#
+#assert('access to captured variable') do
+#  var = 0
+#  t = Thread.new do
+#    100.times do
+#      var = var + 1
+#    end
+#  end
+#  t.join
+#  assert_equal var, 100
+#end
