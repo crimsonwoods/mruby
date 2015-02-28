@@ -78,11 +78,11 @@ p(mrb_state *mrb, mrb_value obj, int prompt)
 
   val = mrb_funcall(mrb, obj, "inspect", 0);
   if (prompt) {
-    if (!MRB_GET_VM(mrb)->exc) {
+    if (!MRB_GET_THREAD_CONTEXT(mrb)->exc) {
       fputs(" => ", stdout);
     }
     else {
-      val = mrb_funcall(mrb, mrb_obj_value(MRB_GET_VM(mrb)->exc), "inspect", 0);
+      val = mrb_funcall(mrb, mrb_obj_value(MRB_GET_THREAD_CONTEXT(mrb)->exc), "inspect", 0);
     }
   }
   if (!mrb_string_p(val)) {
@@ -455,9 +455,9 @@ main(int argc, char **argv)
             stack_keep);
         stack_keep = proc->body.irep->nlocals;
         /* did an exception occur? */
-        if (MRB_GET_VM(mrb)->exc) {
-          p(mrb, mrb_obj_value(MRB_GET_VM(mrb)->exc), 0);
-          MRB_GET_VM(mrb)->exc = 0;
+        if (MRB_GET_THREAD_CONTEXT(mrb)->exc) {
+          p(mrb, mrb_obj_value(MRB_GET_THREAD_CONTEXT(mrb)->exc), 0);
+          MRB_GET_THREAD_CONTEXT(mrb)->exc = 0;
         }
         else {
           /* no */

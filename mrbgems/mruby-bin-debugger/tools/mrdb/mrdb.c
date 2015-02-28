@@ -692,8 +692,8 @@ main(int argc, char **argv)
     v = mrb_load_file_cxt(mrb, args.rfp, cc);
     mrbc_context_free(mrb, cc);
   }
-  if (mrdb->dbg->xm == DBG_QUIT && !mrb_undef_p(v) && MRB_GET_VM(mrb)->exc) {
-    const char *classname = mrb_obj_classname(mrb, mrb_obj_value(MRB_GET_VM(mrb)->exc));
+  if (mrdb->dbg->xm == DBG_QUIT && !mrb_undef_p(v) && MRB_GET_THREAD_CONTEXT(mrb)->exc) {
+    const char *classname = mrb_obj_classname(mrb, mrb_obj_value(MRB_GET_THREAD_CONTEXT(mrb)->exc));
     if (!strcmp(classname, "DebuggerExit")) {
       cleanup(mrb, &args);
       return 0;
@@ -717,7 +717,7 @@ main(int argc, char **argv)
   puts("mruby application exited.");
   mrdb->dbg->xphase = DBG_PHASE_AFTER_RUN;
   if (!mrb_undef_p(v)) {
-    if (MRB_GET_VM(mrb)->exc) {
+    if (MRB_GET_THREAD_CONTEXT(mrb)->exc) {
       mrb_print_error(mrb);
     }
     else {

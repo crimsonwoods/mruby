@@ -5563,12 +5563,12 @@ load_exec(mrb_state *mrb, parser_state *p, mrbc_context *c)
 
       n = snprintf(buf, sizeof(buf), "line %d: %s\n",
           p->error_buffer[0].lineno, p->error_buffer[0].message);
-      MRB_GET_VM(mrb)->exc = mrb_obj_ptr(mrb_exc_new(mrb, E_SYNTAX_ERROR, buf, n));
+      MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(mrb_exc_new(mrb, E_SYNTAX_ERROR, buf, n));
       mrb_parser_free(p);
       return mrb_undef_value();
     }
     else {
-      MRB_GET_VM(mrb)->exc = mrb_obj_ptr(mrb_exc_new_str_lit(mrb, E_SYNTAX_ERROR, "syntax error"));
+      MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(mrb_exc_new_str_lit(mrb, E_SYNTAX_ERROR, "syntax error"));
       mrb_parser_free(p);
       return mrb_undef_value();
     }
@@ -5576,7 +5576,7 @@ load_exec(mrb_state *mrb, parser_state *p, mrbc_context *c)
   proc = mrb_generate_code(mrb, p);
   mrb_parser_free(p);
   if (proc == NULL) {
-    MRB_GET_VM(mrb)->exc = mrb_obj_ptr(mrb_exc_new_str_lit(mrb, E_SCRIPT_ERROR, "codegen error"));
+    MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(mrb_exc_new_str_lit(mrb, E_SCRIPT_ERROR, "codegen error"));
     return mrb_undef_value();
   }
   if (c) {
@@ -5597,7 +5597,7 @@ load_exec(mrb_state *mrb, parser_state *p, mrbc_context *c)
     MRB_GET_CONTEXT(mrb)->ci->target_class = target;
   }
   v = mrb_toplevel_run_keep(mrb, proc, keep);
-  if (MRB_GET_VM(mrb)->exc) return mrb_nil_value();
+  if (MRB_GET_THREAD_CONTEXT(mrb)->exc) return mrb_nil_value();
   return v;
 }
 

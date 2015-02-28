@@ -205,9 +205,9 @@ exc_debug_info(mrb_state *mrb, struct RObject *exc)
 MRB_API mrb_noreturn void
 mrb_exc_raise(mrb_state *mrb, mrb_value exc)
 {
-  MRB_GET_VM(mrb)->exc = mrb_obj_ptr(exc);
+  MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(exc);
   if (!MRB_GET_VM(mrb)->out_of_memory) {
-    exc_debug_info(mrb, MRB_GET_VM(mrb)->exc);
+    exc_debug_info(mrb, MRB_GET_THREAD_CONTEXT(mrb)->exc);
   }
   if (!MRB_GET_THREAD_CONTEXT(mrb)->jmp) {
     mrb_p(mrb, exc);

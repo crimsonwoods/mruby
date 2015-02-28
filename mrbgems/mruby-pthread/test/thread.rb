@@ -100,15 +100,17 @@ assert('access to symbol table') do
   assert_equal 1, t.join
 end
 
-#
-# Exception is currently not supported.
-#
-#assert('Thread.join with exception') do
-#  t = Thread.new do
-#    raise 'error'
-#  end
-#  assert_false t.join.nil?
-#end
+assert('exception is thrown inside of thread') do
+  t = Thread.new do
+    raise 'error'
+  end
+  begin
+    t.join
+    assert_true false # must not be reached here.
+  rescue RuntimeError => e
+    assert_equal 'error', e.message
+  end
+end
 
 #
 # Accssing to captured variables into block is currently not supported.

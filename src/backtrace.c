@@ -172,13 +172,13 @@ mrb_print_backtrace(mrb_state *mrb)
 {
   struct print_backtrace_args args;
 
-  if (!MRB_GET_VM(mrb)->exc || mrb_obj_is_kind_of(mrb, mrb_obj_value(MRB_GET_VM(mrb)->exc), E_SYSSTACK_ERROR)) {
+  if (!MRB_GET_THREAD_CONTEXT(mrb)->exc || mrb_obj_is_kind_of(mrb, mrb_obj_value(MRB_GET_THREAD_CONTEXT(mrb)->exc), E_SYSSTACK_ERROR)) {
     return;
   }
 
   args.stream = stderr;
   args.tracehead = TRUE;
-  exc_output_backtrace(mrb, MRB_GET_VM(mrb)->exc, print_backtrace_i, (void*)&args);
+  exc_output_backtrace(mrb, MRB_GET_THREAD_CONTEXT(mrb)->exc, print_backtrace_i, (void*)&args);
 }
 
 #else
