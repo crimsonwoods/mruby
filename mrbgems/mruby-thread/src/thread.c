@@ -117,6 +117,9 @@ mrb_thread_obj_join(mrb_state *mrb, mrb_value self)
   mrb_free(mrb, data->context->argv);
   mrb_free(mrb, data->context);
   data->context = 0;
+  if (mrb_exception_p(val)) {
+    mrb_exc_raise(mrb, val);
+  }
   return val;
 }
 
