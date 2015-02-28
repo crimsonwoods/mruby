@@ -74,6 +74,7 @@ mrb_thread_obj_init(mrb_state *mrb, mrb_value self)
   mrb_data_init(self, 0, &mrb_thread_data_type);
 
   new_proc = mrb_proc_new(mrb, mrb_proc_ptr(proc)->body.irep);
+  mrb_proc_copy(new_proc, mrb_proc_ptr(proc));
   data = (mrb_thread_data_t*)mrb_malloc(mrb, sizeof(mrb_thread_data_t));
   context = (mrb_thread_context_t*)mrb_malloc(mrb, sizeof(mrb_thread_context_t));
   context->vm   = mrb_thread_attach_vm(mrb);
