@@ -112,9 +112,6 @@ assert('exception is thrown inside of thread') do
   end
 end
 
-#
-# Accssing to captured variables into block is currently not supported.
-#
 assert('access to captured variable') do
   var = 0
   t = Thread.new do
