@@ -117,8 +117,6 @@ typedef void (*mrb_atexit_func)(struct mrb_state*);
  * Structure to hold VM dependent objects/informations.
  */
 typedef struct mrb_vm_context {
-  struct RObject *exc;                    /* exception */
-
 #ifdef MRB_USE_GVL_API
   struct mrb_gvl_t *gvl;                  /* giant VM lock */
 #endif
@@ -204,6 +202,8 @@ typedef struct mrb_vm_context {
  * Structure to hold thread dependent objects/informations.
  */
 typedef struct mrb_thread_context {
+  struct RObject *exc;                    /* exception */
+
   struct mrb_jmpbuf *jmp;
 
   struct mrb_context *c;

@@ -40,7 +40,7 @@ mrb_print_error(mrb_state *mrb)
   mrb_value s;
 
   mrb_print_backtrace(mrb);
-  s = mrb_funcall(mrb, mrb_obj_value(MRB_GET_VM(mrb)->exc), "inspect", 0);
+  s = mrb_funcall(mrb, mrb_obj_value(MRB_GET_THREAD_CONTEXT(mrb)->exc), "inspect", 0);
   if (mrb_string_p(s)) {
     fwrite(RSTRING_PTR(s), RSTRING_LEN(s), 1, stderr);
     putc('\n', stderr);

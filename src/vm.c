@@ -281,10 +281,10 @@ ecall(mrb_state *mrb, int i)
   ci->nregs = p->body.irep->nregs;
   ci->target_class = p->target_class;
   MRB_GET_CONTEXT(mrb)->stack = MRB_GET_CONTEXT(mrb)->stack + ci[-1].nregs;
-  exc = MRB_GET_VM(mrb)->exc; MRB_GET_VM(mrb)->exc = 0;
+  exc = MRB_GET_THREAD_CONTEXT(mrb)->exc; MRB_GET_THREAD_CONTEXT(mrb)->exc = 0;
   mrb_run(mrb, p, *self);
   MRB_GET_CONTEXT(mrb)->ensure[i] = NULL;
-  if (!MRB_GET_VM(mrb)->exc) MRB_GET_VM(mrb)->exc = exc;
+  if (!MRB_GET_THREAD_CONTEXT(mrb)->exc) MRB_GET_THREAD_CONTEXT(mrb)->exc = exc;
 }
 
 #ifndef MRB_FUNCALL_ARGC_MAX
@@ -357,7 +357,7 @@ mrb_funcall_with_block(mrb_state *mrb, mrb_value self, mrb_sym mid, mrb_int argc
         cipop(mrb);
       }
       MRB_GET_THREAD_CONTEXT(mrb)->jmp = 0;
-      val = mrb_obj_value(MRB_GET_VM(mrb)->exc);
+      val = mrb_obj_value(MRB_GET_THREAD_CONTEXT(mrb)->exc);
     }
     MRB_END_EXC(&c_jmp);
   }
@@ -712,7 +712,7 @@ localjump_error(mrb_state *mrb, localjump_error_kind kind)
   mrb_str_cat(mrb, msg, lead, sizeof(lead) - 1);
   mrb_str_cat(mrb, msg, kind_str[kind], kind_str_len[kind]);
   exc = mrb_exc_new_str(mrb, E_LOCALJUMP_ERROR, msg);
-  MRB_GET_VM(mrb)->exc = mrb_obj_ptr(exc);
+  MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(exc);
 }
 
 static void
@@ -731,7 +731,7 @@ argnum_error(mrb_state *mrb, mrb_int num)
                   mrb_fixnum_value(MRB_GET_CONTEXT(mrb)->ci->argc), mrb_fixnum_value(num));
   }
   exc = mrb_exc_new_str(mrb, E_ARGUMENT_ERROR, str);
-  MRB_GET_VM(mrb)->exc = mrb_obj_ptr(exc);
+  MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(exc);
 }
 
 #define ERR_PC_SET(mrb, pc) MRB_GET_CONTEXT(mrb)->ci->err = pc;
@@ -1067,8 +1067,8 @@ RETRY_TRY_BLOCK:
 
     CASE(OP_RESCUE) {
       /* A      R(A) := exc; clear(exc) */
-      SET_OBJ_VALUE(regs[GETARG_A(i)], MRB_GET_VM(mrb)->exc);
-      MRB_GET_VM(mrb)->exc = 0;
+      SET_OBJ_VALUE(regs[GETARG_A(i)], MRB_GET_THREAD_CONTEXT(mrb)->exc);
+      MRB_GET_THREAD_CONTEXT(mrb)->exc = 0;
       NEXT;
     }
 
@@ -1084,7 +1084,7 @@ RETRY_TRY_BLOCK:
 
     CASE(OP_RAISE) {
       /* A      raise(R(A)) */
-      MRB_GET_VM(mrb)->exc = mrb_obj_ptr(regs[GETARG_A(i)]);
+      MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(regs[GETARG_A(i)]);
       goto L_RAISE;
     }
 
@@ -1196,7 +1196,7 @@ RETRY_TRY_BLOCK:
         result = m->body.func(mrb, recv);
         MRB_GET_CONTEXT(mrb)->stack[0] = result;
         mrb_gc_arena_restore(mrb, ai);
-        if (MRB_GET_VM(mrb)->exc) goto L_RAISE;
+        if (MRB_GET_THREAD_CONTEXT(mrb)->exc) goto L_RAISE;
         /* pop stackpos */
         ci = MRB_GET_CONTEXT(mrb)->ci;
         if (!ci->target_class) { /* return from context modifying method (resume/yield) */
@@ -1261,7 +1261,7 @@ RETRY_TRY_BLOCK:
       if (MRB_PROC_CFUNC_P(m)) {
         recv = m->body.func(mrb, recv);
         mrb_gc_arena_restore(mrb, ai);
-        if (MRB_GET_VM(mrb)->exc) goto L_RAISE;
+        if (MRB_GET_THREAD_CONTEXT(mrb)->exc) goto L_RAISE;
         /* pop stackpos */
         ci = MRB_GET_CONTEXT(mrb)->ci;
         regs = MRB_GET_CONTEXT(mrb)->stack = ci->stackent;
@@ -1344,7 +1344,7 @@ RETRY_TRY_BLOCK:
         ci->nregs = 0;
         MRB_GET_CONTEXT(mrb)->stack[0] = m->body.func(mrb, recv);
         mrb_gc_arena_restore(mrb, ai);
-        if (MRB_GET_VM(mrb)->exc) goto L_RAISE;
+        if (MRB_GET_THREAD_CONTEXT(mrb)->exc) goto L_RAISE;
         /* pop stackpos */
         regs = MRB_GET_CONTEXT(mrb)->stack = MRB_GET_CONTEXT(mrb)->ci->stackent;
         cipop(mrb);
@@ -1388,7 +1388,7 @@ RETRY_TRY_BLOCK:
         if (!e) {
           mrb_value exc;
           exc = mrb_exc_new_str_lit(mrb, E_NOMETHOD_ERROR, "super called outside of method");
-          MRB_GET_VM(mrb)->exc = mrb_obj_ptr(exc);
+          MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(exc);
           goto L_RAISE;
         }
         stack = e->stack + 1;
@@ -1530,14 +1530,14 @@ RETRY_TRY_BLOCK:
       /* fall through */
     CASE(OP_RETURN) {
       /* A B     return R(A) (B=normal,in-block return/break) */
-      if (MRB_GET_VM(mrb)->exc) {
+      if (MRB_GET_THREAD_CONTEXT(mrb)->exc) {
         mrb_callinfo *ci;
         int eidx;
 
       L_RAISE:
         ci = MRB_GET_CONTEXT(mrb)->ci;
-        mrb_obj_iv_ifnone(mrb, MRB_GET_VM(mrb)->exc, mrb_intern_lit(mrb, "lastpc"), mrb_cptr_value(mrb, pc));
-        mrb_obj_iv_ifnone(mrb, MRB_GET_VM(mrb)->exc, mrb_intern_lit(mrb, "ciidx"), mrb_fixnum_value(ci - MRB_GET_CONTEXT(mrb)->cibase));
+        mrb_obj_iv_ifnone(mrb, MRB_GET_THREAD_CONTEXT(mrb)->exc, mrb_intern_lit(mrb, "lastpc"), mrb_cptr_value(mrb, pc));
+        mrb_obj_iv_ifnone(mrb, MRB_GET_THREAD_CONTEXT(mrb)->exc, mrb_intern_lit(mrb, "ciidx"), mrb_fixnum_value(ci - MRB_GET_CONTEXT(mrb)->cibase));
         eidx = ci->eidx;
         if (ci == MRB_GET_CONTEXT(mrb)->cibase) {
           if (ci->ridx == 0) goto L_STOP;
@@ -1616,7 +1616,7 @@ RETRY_TRY_BLOCK:
             }
             if (MRB_GET_CONTEXT(mrb)->prev->ci == MRB_GET_CONTEXT(mrb)->prev->cibase) {
               mrb_value exc = mrb_exc_new_str_lit(mrb, E_FIBER_ERROR, "double resume");
-              MRB_GET_VM(mrb)->exc = mrb_obj_ptr(exc);
+              MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(exc);
               goto L_RAISE;
             }
             /* automatic yield at the end */
@@ -2355,7 +2355,7 @@ RETRY_TRY_BLOCK:
         ci->nregs = 0;
         MRB_GET_CONTEXT(mrb)->stack[0] = p->body.func(mrb, recv);
         mrb_gc_arena_restore(mrb, ai);
-        if (MRB_GET_VM(mrb)->exc) goto L_RAISE;
+        if (MRB_GET_THREAD_CONTEXT(mrb)->exc) goto L_RAISE;
         /* pop stackpos */
         regs = MRB_GET_CONTEXT(mrb)->stack = MRB_GET_CONTEXT(mrb)->ci->stackent;
         cipop(mrb);
@@ -2394,7 +2394,7 @@ RETRY_TRY_BLOCK:
       /* A      R(A) := target_class */
       if (!MRB_GET_CONTEXT(mrb)->ci->target_class) {
         mrb_value exc = mrb_exc_new_str_lit(mrb, E_TYPE_ERROR, "no target class or module");
-        MRB_GET_VM(mrb)->exc = mrb_obj_ptr(exc);
+        MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(exc);
         goto L_RAISE;
       }
       regs[GETARG_A(i)] = mrb_obj_value(MRB_GET_CONTEXT(mrb)->ci->target_class);
@@ -2436,8 +2436,8 @@ RETRY_TRY_BLOCK:
       }
       ERR_PC_CLR(mrb);
       MRB_GET_THREAD_CONTEXT(mrb)->jmp = prev_jmp;
-      if (MRB_GET_VM(mrb)->exc) {
-        ret = mrb_obj_value(MRB_GET_VM(mrb)->exc);
+      if (MRB_GET_THREAD_CONTEXT(mrb)->exc) {
+        ret = mrb_obj_value(MRB_GET_THREAD_CONTEXT(mrb)->exc);
 #ifdef MRB_USE_GVL_API
         if (!is_gvl_acquired) {
           mrb_gvl_release(mrb);
@@ -2465,7 +2465,7 @@ RETRY_TRY_BLOCK:
       else {
         exc = mrb_exc_new_str(mrb, E_LOCALJUMP_ERROR, msg);
       }
-      MRB_GET_VM(mrb)->exc = mrb_obj_ptr(exc);
+      MRB_GET_THREAD_CONTEXT(mrb)->exc = mrb_obj_ptr(exc);
       goto L_RAISE;
     }
   }

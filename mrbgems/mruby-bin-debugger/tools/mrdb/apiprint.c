@@ -44,9 +44,9 @@ mrb_debug_eval(mrb_state *mrb, mrb_debug_context *dbg, const char *expr, size_t 
   MRB_GET_VM(mrb)->code_fetch_hook = NULL;
 
   mrdb_check_syntax(mrb, dbg, expr, len);
-  if (MRB_GET_VM(mrb)->exc) {
-    v = mrb_obj_value(MRB_GET_VM(mrb)->exc);
-    MRB_GET_VM(mrb)->exc = 0;
+  if (MRB_GET_THREAD_CONTEXT(mrb)->exc) {
+    v = mrb_obj_value(MRB_GET_THREAD_CONTEXT(mrb)->exc);
+    MRB_GET_THREAD_CONTEXT(mrb)->exc = 0;
   }
   else {
     /*

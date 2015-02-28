@@ -706,12 +706,13 @@ root_scan_phase(mrb_state *mrb)
   mrb_gc_mark(mrb, (struct RBasic*)MRB_GET_VM(mrb)->object_class);
   /* mark top_self */
   mrb_gc_mark(mrb, (struct RBasic*)MRB_GET_VM(mrb)->top_self);
-  /* mark exception */
-  mrb_gc_mark(mrb, (struct RBasic*)MRB_GET_VM(mrb)->exc);
   /* mark pre-allocated exception */
   mrb_gc_mark(mrb, (struct RBasic*)MRB_GET_VM(mrb)->nomem_err);
 
 #ifndef MRB_USE_THREAD_API
+  /* mark exception */
+  mrb_gc_mark(mrb, (struct RBasic*)MRB_GET_THREAD_CONTEXT(mrb)->exc);
+
   /* mark arena */
   for (i=0,e=MRB_GET_THREAD_CONTEXT(mrb)->arena_idx; i<e; i++) {
     mrb_gc_mark(mrb, MRB_GET_THREAD_CONTEXT(mrb)->arena[i]);
@@ -737,6 +738,9 @@ root_scan_phase(mrb_state *mrb)
 
     root_c = context->root_c;
     c = context->c;
+
+    /* mark exception */
+    mrb_gc_mark(mrb, (struct RBasic*)MRB_GET_THREAD_CONTEXT(mrb)->exc);
 
     /* mark arena */
     for (j = 0, e = context->arena_idx; j < e; j++) {

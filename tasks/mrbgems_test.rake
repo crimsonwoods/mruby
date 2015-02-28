@@ -61,7 +61,7 @@ MRuby.each_target do
             else
               f.puts %Q[  mrb_load_irep(mrb2, gem_test_irep_#{g.funcname}_preload);]
             end
-            f.puts %Q[  if (MRB_GET_VM(mrb2)->exc) {]
+            f.puts %Q[  if (MRB_GET_THREAD_CONTEXT(mrb2)->exc) {]
             f.puts %Q[    mrb_print_error(mrb2);]
             f.puts %Q[    exit(EXIT_FAILURE);]
             f.puts %Q[  }]

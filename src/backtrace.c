@@ -147,10 +147,10 @@ exc_output_backtrace(mrb_state *mrb, struct RObject *exc, output_stream_func fun
 MRB_API void
 mrb_print_backtrace(mrb_state *mrb)
 {
-  if (!MRB_GET_VM(mrb)->exc || mrb_obj_is_kind_of(mrb, mrb_obj_value(MRB_GET_VM(mrb)->exc), E_SYSSTACK_ERROR)) {
+  if (!MRB_GET_THREAD_CONTEXT(mrb)->exc || mrb_obj_is_kind_of(mrb, mrb_obj_value(MRB_GET_THREAD_CONTEXT(mrb)->exc), E_SYSSTACK_ERROR)) {
     return;
   }
-  exc_output_backtrace(mrb, MRB_GET_VM(mrb)->exc, print_backtrace_i, (void*)stderr);
+  exc_output_backtrace(mrb, MRB_GET_THREAD_CONTEXT(mrb)->exc, print_backtrace_i, (void*)stderr);
 }
 
 MRB_API mrb_value
