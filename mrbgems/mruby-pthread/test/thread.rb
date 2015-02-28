@@ -115,13 +115,13 @@ end
 #
 # Accssing to captured variables into block is currently not supported.
 #
-#assert('access to captured variable') do
-#  var = 0
-#  t = Thread.new do
-#    100.times do
-#      var = var + 1
-#    end
-#  end
-#  t.join
-#  assert_equal var, 100
-#end
+assert('access to captured variable') do
+  var = 0
+  t = Thread.new do
+    100.times do
+      var = var + 1
+    end
+  end
+  t.join
+  assert_equal var, 100
+end
