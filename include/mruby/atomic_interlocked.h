@@ -1,6 +1,8 @@
 #ifndef MRUBY_ATOMIC_INTERLOCKED_H
 #define MRUBY_ATOMIC_INTERLOCKED_H
 
+#include <windows.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
