@@ -122,3 +122,25 @@ assert('access to captured variable') do
   t.join
   assert_equal var, 100
 end
+
+assert('create thread inside of thread') do
+  t1 = Thread.new do
+    Thread.new do
+      1
+    end
+  end
+  t2 = t1.join
+  assert_false t2.nil?
+  assert_true t2.kind_of?(Thread)
+  assert_equal 1, t2.join
+end
+
+assert('create thread and join') do
+  t = Thread.new do
+    t = Thread.new do
+      1
+    end
+    t.join
+  end
+  assert_equal 1, t.join
+end
