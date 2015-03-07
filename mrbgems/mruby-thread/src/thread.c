@@ -93,6 +93,9 @@ mrb_thread_obj_init(mrb_state *mrb, mrb_value self)
   }
 
   mrb_gc_protect(context->vm, context->proc);
+  if (new_proc->env) {
+    mrb_gc_protect(context->vm, mrb_obj_value(new_proc->env));
+  }
 
   data->thread = mrb_thread_create(mrb, 0, mrb_thread_obj_func, context);
   data->context = context;
