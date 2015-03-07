@@ -125,7 +125,7 @@ mrb_thread_obj_join(mrb_state *mrb, mrb_value self)
 }
 
 void
-mrb_mruby_thread_gem_init(mrb_state *mrb)
+mrb_define_thread_class(mrb_state *mrb)
 {
   struct RClass *c = mrb_define_class(mrb, THREAD_CLASSNAME, MRB_GET_VM(mrb)->object_class);
 
@@ -133,11 +133,6 @@ mrb_mruby_thread_gem_init(mrb_state *mrb)
 
   mrb_define_method(mrb, c, "initialize", mrb_thread_obj_init, MRB_ARGS_OPT(1));
   mrb_define_method(mrb, c, "join",       mrb_thread_obj_join, MRB_ARGS_NONE());
-}
-
-void
-mrb_mruby_thread_gem_final(mrb_state *mrb)
-{
 }
 
 #endif
