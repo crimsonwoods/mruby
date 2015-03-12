@@ -10,19 +10,20 @@
 #include <unistd.h>
 #include <sched.h>
 
+typedef struct mrb_thread_params_t {
+  mrb_state        *mrb;
+  mrb_thread_proc_t proc;
+  void             *arg;
+} mrb_thread_params_t;
+
 struct mrb_threadattr_t {
   pthread_attr_t attr;
 };
 
 struct mrb_thread_t {
   pthread_t thread;
+  mrb_thread_params_t *params;
 };
-
-typedef struct mrb_thread_params_t {
-  mrb_state        *mrb;
-  mrb_thread_proc_t proc;
-  void             *arg;
-} mrb_thread_params_t;
 
 static void *thread_entry_proc(void *arg);
 
@@ -68,6 +69,8 @@ mrb_pthread_create(mrb_state *mrb, mrb_threadattr_t *attr, mrb_thread_proc_t pro
     return NULL;
   }
 
+  thread->params = params;
+
   return thread;
 }
 
@@ -90,6 +93,9 @@ mrb_pthread_join(mrb_state *mrb, mrb_thread_t *thread, void **result)
 #else
     err = pthread_join(thread->thread, result);
 #endif
+    if (!err) {
+      mrb_free(mrb, thread->params);
+    }
     return err;
   }
 }
@@ -125,8 +131,6 @@ thread_entry_proc(void *arg)
   mrb  = params->mrb;
   proc = params->proc;
   arg  = params->arg;
-
-  mrb_free(mrb, params);
 
   return proc(mrb, arg);
 }

@@ -9,6 +9,12 @@
 #include <errno.h>
 #include <process.h>
 
+typedef struct mrb_thread_params_t {
+  mrb_state        *mrb;
+  mrb_thread_proc_t proc;
+  void             *arg;
+} mrb_thread_params_t;
+
 struct mrb_threadattr_t {
   LPSECURITY_ATTRIBUTES security_attr;
   DWORD stack_size;
@@ -17,13 +23,8 @@ struct mrb_threadattr_t {
 
 struct mrb_thread_t {
   HANDLE thread;
+  mrb_thread_params_t *params;
 };
-
-typedef struct mrb_thread_params_t {
-  mrb_state        *mrb;
-  mrb_thread_proc_t proc;
-  void             *arg;
-} mrb_thread_params_t;
 
 static DWORD thread_entry_proc(LPVOID arg);
 
@@ -69,6 +70,8 @@ mrb_win32_thread_create(mrb_state *mrb, mrb_threadattr_t *attr, mrb_thread_proc_
     return NULL;
   }
 
+  thread->params = params;
+
   return thread;
 }
 
@@ -91,11 +94,14 @@ mrb_win32_thread_join(mrb_state *mrb, mrb_thread_t *thread, void **result)
 #else
     err = WaitForSingleObject(thread->thread, INFINITE);
 #endif
-    if ((err == WAIT_OBJECT_0) && result) {
-      DWORD code = 0;
-      if (GetExitCodeThread(thread->thread, &code)) {
-        *result = (void*)code;
+    if (err == WAIT_OBJECT_0) {
+      if (result) {
+        DWORD code = 0;
+        if (GetExitCodeThread(thread->thread, &code)) {
+          *result = (void*)code;
+        }
       }
+      mrb_free(mrb, thread->params);
     }
     return err == WAIT_OBJECT_0 ? 0 : EINVAL;
   }
