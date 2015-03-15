@@ -634,6 +634,12 @@ mrb_yield_with_class(mrb_state *mrb, mrb_value b, mrb_int argc, const mrb_value 
   const mrb_bool is_gvl_acquired = mrb_gvl_is_acquired(mrb);
 #endif
 
+#ifdef MRB_USE_GVL_API
+  if (!is_gvl_acquired) {
+    mrb_gvl_acquire(mrb);
+  }
+#endif
+
   if (!MRB_GET_CONTEXT(mrb)->stack) {
     stack_init(mrb);
   }
@@ -667,12 +673,6 @@ mrb_yield_with_class(mrb_state *mrb, mrb_value b, mrb_int argc, const mrb_value 
     stack_copy(MRB_GET_CONTEXT(mrb)->stack+1, argv, argc);
   }
   MRB_GET_CONTEXT(mrb)->stack[argc+1] = mrb_nil_value();
-
-#ifdef MRB_USE_GVL_API
-  if (!is_gvl_acquired) {
-    mrb_gvl_acquire(mrb);
-  }
-#endif
 
   if (MRB_PROC_CFUNC_P(p)) {
     val = p->body.func(mrb, self);
