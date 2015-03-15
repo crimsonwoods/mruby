@@ -152,6 +152,9 @@ mrb_mruby_win32_thread_gem_init(mrb_state *mrb)
   mrb_thread_init_api(mrb, &pthread_api);
 #ifdef MRB_USE_MUTEX_API
   mrb_win32_mutex_init_api(mrb);
+#ifdef MRB_USE_GVL_API
+  mrb_gvl_init(mrb);
+#endif
 #endif
 }
 
