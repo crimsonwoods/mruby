@@ -141,6 +141,9 @@ mrb_mruby_pthread_gem_init(mrb_state *mrb)
   mrb_thread_init_api(mrb, &pthread_api);
 #ifdef MRB_USE_MUTEX_API
   mrb_pthread_mutex_init_api(mrb);
+#ifdef MRB_USE_GVL_API
+  mrb_gvl_init(mrb);
+#endif
 #endif
 }
 
