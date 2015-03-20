@@ -100,14 +100,18 @@ mrb_thread_sleep(mrb_state *mrb, uint32_t millis)
   return MRB_GET_VM(mrb)->thread_api->thread_sleep(mrb, millis);
 }
 
-#ifdef MRB_USE_GVL_API
+#if defined(MRB_USE_GVL_API) && !defined(MRB_NO_USE_TIMER_THREAD)
+
+#ifndef MRB_TIMER_THREAD_INTERVAL
+#define MRB_TIMER_THREAD_INTERVAL 1
+#endif
 
 static void*
 timer_thread(mrb_state *mrb, void *arg)
 {
   size_t i;
   while (!mrb_atomic_bool_load(&MRB_GET_VM(mrb)->stop_timer_thread)) {
-    mrb_thread_sleep(mrb, 1);
+    mrb_thread_sleep(mrb, MRB_TIMER_THREAD_INTERVAL);
     if (MRB_GET_VM(mrb)->thread_count <= 1) {
       continue;
     }
