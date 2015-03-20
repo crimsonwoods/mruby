@@ -153,7 +153,7 @@ mrb_open_allocf(mrb_allocf f, void *ud)
   mrb_init_mrbgems(mrb);
   mrb_gc_arena_restore(mrb, 0);
 #endif
-#if defined(MRB_USE_THREAD_API) && defined(MRB_USE_GVL_API)
+#if defined(MRB_USE_THREAD_API) && defined(MRB_USE_GVL_API) && !defined(MRB_NO_USE_TIMER_THREAD)
   mrb_timer_thread_create(mrb);
 #endif
   return mrb;
@@ -272,7 +272,7 @@ mrb_free_context(mrb_state *mrb, struct mrb_context *c)
 MRB_API void
 mrb_close(mrb_state *mrb)
 {
-#if defined MRB_USE_THREAD_API && defined MRB_USE_GVL_API
+#if defined(MRB_USE_THREAD_API) && defined(MRB_USE_GVL_API) && !defined(MRB_NO_USE_TIMER_THREAD)
   mrb_timer_thread_destroy(mrb);
 #endif
 

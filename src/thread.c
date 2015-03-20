@@ -100,7 +100,7 @@ mrb_thread_sleep(mrb_state *mrb, uint32_t millis)
   return MRB_GET_VM(mrb)->thread_api->thread_sleep(mrb, millis);
 }
 
-#ifdef MRB_USE_GVL_API
+#if defined(MRB_USE_GVL_API) && !defined(MRB_NO_USE_TIMER_THREAD)
 
 static void*
 timer_thread(mrb_state *mrb, void *arg)
