@@ -23,6 +23,7 @@ typedef struct mrb_thread_api_t {
   void (*thread_destroy)(mrb_state *mrb, mrb_thread_t *thread);
   int (*thread_join)(mrb_state *mrb, mrb_thread_t *thread, void **result);
   int (*thread_sleep)(mrb_state *mrb, uint32_t millis);
+  void (*thread_yield)(mrb_state *mrb);
 } mrb_thread_api_t;
 
 MRB_API void mrb_thread_init_api(mrb_state *mrb, const mrb_thread_api_t *api);
@@ -34,6 +35,7 @@ MRB_API int mrb_thread_join(mrb_state *mrb, mrb_thread_t *thread, void **result)
 MRB_API mrb_state *mrb_thread_attach_vm(mrb_state *mrb);
 MRB_API void mrb_thread_detach_vm(mrb_state *mrb);
 MRB_API int  mrb_thread_sleep(mrb_state *mrb, uint32_t millis);
+MRB_API void mrb_thread_yield(mrb_state *mrb);
 #if defined(MRB_USE_GVL_API) && !defined(MRB_NO_USE_TIMER_THREAD)
 MRB_API void mrb_timer_thread_create(mrb_state *mrb);
 MRB_API void mrb_timer_thread_destroy(mrb_state *mrb);
