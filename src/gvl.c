@@ -64,7 +64,11 @@ mrb_gvl_yield(mrb_state *mrb)
 {
   mrb_gvl_release(mrb);
 #ifdef MRB_USE_THREAD_API
+#  ifdef MRB_USE_ATOMIC_API
   mrb_atomic_bool_store(&MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_releasing_requested, FALSE);
+#  else
+  MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_releasing_requested = FALSE;
+#  endif
   mrb_thread_sleep(mrb, 0);
 #endif
   mrb_gvl_acquire(mrb);

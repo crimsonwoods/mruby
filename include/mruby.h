@@ -218,9 +218,17 @@ typedef struct mrb_thread_context {
   int arena_idx;
 
 #ifdef MRB_USE_GVL_API
+#  ifdef MRB_USE_ATOMIC_API
   mrb_atomic_bool_t flag_gvl_acquired;
+#  else
+  mrb_bool flag_gvl_acquired;
+#  endif
 #  ifdef MRB_USE_THREAD_API
+#    ifdef MRB_USE_ATOMIC_API
   mrb_atomic_bool_t flag_gvl_releasing_requested;
+#    else
+  mrb_bool flag_gvl_releasing_requested;
+#    endif
 #  endif
 #endif
 
