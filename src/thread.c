@@ -100,6 +100,15 @@ mrb_thread_sleep(mrb_state *mrb, uint32_t millis)
   return MRB_GET_VM(mrb)->thread_api->thread_sleep(mrb, millis);
 }
 
+MRB_API void
+mrb_thread_yield(mrb_state *mrb)
+{
+  if (MRB_GET_VM(mrb)->thread_api == NULL) {
+    return;
+  }
+  MRB_GET_VM(mrb)->thread_api->thread_yield(mrb);
+}
+
 #if defined(MRB_USE_GVL_API) && !defined(MRB_NO_USE_TIMER_THREAD)
 
 #ifndef MRB_TIMER_THREAD_INTERVAL

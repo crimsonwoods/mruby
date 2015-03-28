@@ -68,7 +68,7 @@ mrb_gvl_yield(mrb_state *mrb)
 #  else
   MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_releasing_requested = FALSE;
 #  endif
-  mrb_thread_sleep(mrb, 0);
+  mrb_thread_yield(mrb);
 #endif
   mrb_gvl_acquire(mrb);
 }

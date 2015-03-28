@@ -114,9 +114,16 @@ mrb_win32_thread_destroy(mrb_state *mrb, mrb_thread_t *thread)
 }
 
 static int
-mrb_win32_sleep(mrb_state *mrb, uint32_t millis) {
+mrb_win32_sleep(mrb_state *mrb, uint32_t millis)
+{
   Sleep(millis);
   return 0;
+}
+
+static void
+mrb_win32_thread_yield(mrb_state *mrb)
+{
+  Sleep(0);
 }
 
 static DWORD
@@ -142,6 +149,7 @@ static const mrb_thread_api_t pthread_api = {
   .thread_destroy      = mrb_win32_thread_destroy,
   .thread_join         = mrb_win32_thread_join,
   .thread_sleep        = mrb_win32_sleep,
+  .thread_yield        = mrb_win32_thread_yield,
 };
 
 extern void mrb_win32_mutex_init_api(mrb_state *mrb);

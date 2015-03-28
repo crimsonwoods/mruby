@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sched.h>
 
 struct mrb_threadattr_t {
   pthread_attr_t attr;
@@ -104,6 +105,16 @@ mrb_usleep(mrb_state *mrb, uint32_t millis) {
   return usleep(millis * 1000u);
 }
 
+static void
+mrb_pthread_yield(mrb_state *mrb)
+{
+#if defined _GNU_SOURCE
+  pthread_yield();
+#else
+  sched_yield();
+#endif
+}
+
 static void*
 thread_entry_proc(void *arg)
 {
@@ -127,6 +138,7 @@ static const mrb_thread_api_t pthread_api = {
   .thread_destroy      = mrb_pthread_destroy,
   .thread_join         = mrb_pthread_join,
   .thread_sleep        = mrb_usleep,
+  .thread_yield        = mrb_pthread_yield,
 };
 
 extern void mrb_pthread_mutex_init_api(mrb_state *mrb);
