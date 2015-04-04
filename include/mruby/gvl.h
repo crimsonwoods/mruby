@@ -32,6 +32,14 @@ MRB_API void mrb_gvl_release_dbg(mrb_state *mrb, char const *file, int line, cha
 MRB_API void mrb_blocking_region_begin(mrb_state *mrb, mrb_blocking_region_t *region);
 MRB_API void mrb_blocking_region_end(mrb_state *mrb, mrb_blocking_region_t *region);
 
+#define MRB_BLOCKING_REGION(mrb, exec) \
+{ \
+  mrb_blocking_region_t region; \
+  mrb_blocking_region_begin(mrb, &region); \
+  exec; \
+  mrb_blocking_region_end(mrb, &region); \
+}
+
 #ifdef MRB_GVL_DEBUG
 #define mrb_gvl_acquire(mrb) mrb_gvl_acquire_dbg(mrb, __FILE__, __LINE__, __func__)
 #define mrb_gvl_release(mrb) mrb_gvl_release_dbg(mrb, __FILE__, __LINE__, __func__)
@@ -55,6 +63,8 @@ typedef struct mrb_blocking_region_t {
 #define mrb_gvl_release_dbg(mrb, file, line, func)
 #define mrb_blocking_region_begin(mrb, region) ((void)region)
 #define mrb_blocking_region_end(mrb, region)   ((void)region)
+
+#define MRB_BLOCKING_REGION(mrb, exec) { exec; }
 
 #endif
 #endif
