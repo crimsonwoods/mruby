@@ -100,5 +100,23 @@ mrb_gvl_release_dbg(mrb_state *mrb, char const *file, int line, char const *func
   mrb_gvl_release(mrb);
 }
 
+MRB_API void
+mrb_blocking_region_begin(mrb_state *mrb, mrb_blocking_region_t *region)
+{
+  const mrb_bool is_gvl_acquired = mrb_gvl_is_acquired(mrb);
+  if (is_gvl_acquired) {
+    mrb_gvl_release(mrb);
+  }
+  region->is_gvl_released = is_gvl_acquired;
+}
+
+MRB_API void
+mrb_blocking_region_end(mrb_state *mrb, mrb_blocking_region_t *region)
+{
+  if (region->is_gvl_released) {
+    mrb_gvl_acquire(mrb);
+  }
+}
+
 #  endif
 #endif
