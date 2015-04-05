@@ -41,21 +41,37 @@ mrb_gvl_cleanup(mrb_state *mrb)
 MRB_API void
 mrb_gvl_acquire(mrb_state *mrb)
 {
+#ifdef MRB_USE_ATOMIC_API
+  if (!MRB_GET_VM(mrb)->gvl || mrb_atomic_bool_load(&MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired)) {
+#else
   if (!MRB_GET_VM(mrb)->gvl || MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired) {
+#endif
     return;
   }
   mrb_mutex_lock(mrb, MRB_GET_VM(mrb)->gvl->mutex);
+#ifdef MRB_USE_ATOMIC_API
   mrb_atomic_bool_store(&MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired, TRUE);
+#else
+  MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired = TRUE;
+#endif
 }
 
 MRB_API void
 mrb_gvl_release(mrb_state *mrb)
 {
+#ifdef MRB_USE_ATOMIC_API
+  if (!MRB_GET_VM(mrb)->gvl || !mrb_atomic_bool_load(&MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired)) {
+#else
   if (!MRB_GET_VM(mrb)->gvl || !MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired) {
+#endif
     return;
   }
   mrb_mutex_unlock(mrb, MRB_GET_VM(mrb)->gvl->mutex);
+#ifdef MRB_USE_ATOMIC_API
   mrb_atomic_bool_store(&MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired, FALSE);
+#else
+  MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired = FALSE;
+#endif
 }
 
 MRB_API void
@@ -76,7 +92,11 @@ mrb_gvl_yield(mrb_state *mrb)
 MRB_API mrb_bool
 mrb_gvl_is_acquired(mrb_state *mrb)
 {
+#ifdef MRB_USE_ATOMIC_API
+  return mrb_atomic_bool_load(&MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired);
+#else
   return MRB_GET_THREAD_CONTEXT(mrb)->flag_gvl_acquired;
+#endif
 }
 
 MRB_API void

@@ -129,10 +129,18 @@ timer_thread(mrb_state *mrb, void *arg)
       if (!context) {
         continue;
       }
+#ifdef MRB_USE_ATOMIC_API
       if (!mrb_atomic_bool_load(&context->flag_gvl_acquired)) {
+#else
+      if (!context->flag_gvl_acquired) {
+#endif
         continue;
       }
+#ifdef MRB_USE_ATOMIC_API
       mrb_atomic_bool_store(&context->flag_gvl_releasing_requested, TRUE);
+#else
+      context->flag_gvl_releasing_requested = TRUE;
+#endif
     }
   }
   return 0;
