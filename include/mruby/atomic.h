@@ -3,28 +3,6 @@
 
 #include "mruby/atomic_types.h"
 
-#if defined(__SIZEOF_POINTER__) // __SIZEOF_POINTER__ might be defined by GCC
-# if __SIZEOF_POINTER__ == 4
-#   define MRB_PTR_SIZE 32
-# elif __SIZEOF_POINTER__ == 8
-#   define MRB_PTR_SIZE 64
-# endif
-#elif defined(__POINTER_WIDTH__) // __POINTER_WIDTH__ might be defined by Clang
-# if __POINTER_WIDTH__ 32
-#   define MRB_PTR_SIZE 32
-# elif __POINTER_WIDTH 64
-#   define MRB_PTR_SIZE 64
-# endif
-#elif defined(_WIN64)
-#  define MRB_PTR_SIZE 64
-#elif defined(_WIN32)
-#  define MRB_PTR_SIZE 32
-#endif
-
-#if !defined(MRB_PTR_SIZE)
-# error Cannot detect a size of ptr.
-#endif
-
 #if !defined(MRB_USE_ATOMIC_API_STUB)
 #  if defined(__GNUC__)
 #    define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
