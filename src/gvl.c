@@ -1,19 +1,18 @@
 #ifdef MRB_USE_GVL_API
 
+#ifndef MRB_USE_MUTEX_API
+#error Mutex API is required.
+#endif
+
 #include "mruby/gvl.h"
+#include "mruby/mutex.h"
+#include "mruby/thread.h"
+#include "mruby/atomic.h"
 
 #ifdef MRB_GVL_DEBUG
 #undef mrb_gvl_acquire
 #undef mrb_gvl_release
 #endif
-
-#ifndef MRB_USE_MUTEX_API
-#  error Mutex API is required.
-#else
-#  include "mruby/mutex.h"
-#  include "mruby/thread.h"
-#  include "mruby/atomic.h"
-
 
 struct mrb_gvl_t {
   mrb_mutex_t *mutex;
@@ -118,5 +117,4 @@ mrb_blocking_region_end(mrb_state *mrb, mrb_blocking_region_t *region)
   }
 }
 
-#  endif
 #endif
