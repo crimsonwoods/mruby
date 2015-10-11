@@ -31,6 +31,8 @@ MRuby::Toolchain.new(:androideabi) do |conf|
   CLANG_VERSION = ENV['CLANG_VERSION'] || DEFAULT_CLANG_VERSION
 
   case ANDROID_TARGET_ARCH.downcase
+  when 'arch-arm64', 'arm64' then
+    toolchain_prefix = 'aarch64-linux-android-'
   when 'arch-arm',  'arm'  then
     toolchain_prefix = 'arm-linux-androideabi-'
   when 'arch-x86',  'x86'  then
@@ -64,6 +66,9 @@ MRuby::Toolchain.new(:androideabi) do |conf|
     path_to_sysroot   = ANDROID_NDK_HOME + '/platforms/' + ANDROID_TARGET_PLATFORM
     if ANDROID_TOOLCHAIN.downcase == 'gcc' then
       case ANDROID_TARGET_ARCH.downcase
+	  when 'arch-arm64', 'arm64' then
+	    path_to_toolchain += 'aarch64-linux-android-'
+		path_to_sysroot   += '/arch-arm64'
       when 'arch-arm',  'arm'  then
         path_to_toolchain += 'arm-linux-androideabi-'
         path_to_sysroot   += '/arch-arm'
@@ -88,6 +93,9 @@ MRuby::Toolchain.new(:androideabi) do |conf|
   SYSROOT = path_to_sysroot
 
   case ANDROID_TARGET_ARCH.downcase
+  when 'arch-arm64', 'arm64' then
+      ARCH_CFLAGS  = %W()
+      ARCH_LDFLAGS = %W()
   when 'arch-arm',  'arm'  then
     if ANDROID_TARGET_ARCH_ABI.downcase == 'armeabi-v7a' then
       ARCH_CFLAGS  = %W(-march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16)
