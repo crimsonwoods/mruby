@@ -12,11 +12,11 @@ MRuby::Toolchain.new(:androideabi) do |conf|
   toolchain :gcc
 
   DEFAULT_ANDROID_TOOLCHAIN   = 'gcc'
-  DEFAULT_ANDROID_TARGET_ARCH = 'arm'
-  DEFAULT_ANDROID_TARGET_ARCH_ABI = 'armeabi'
-  DEFAULT_ANDROID_TARGET_PLATFORM = 'android-14'
-  DEFAULT_GCC_VERSION   = '4.6'
-  DEFAULT_CLANG_VERSION = '3.1'
+  DEFAULT_ANDROID_TARGET_ARCH = 'arm64'
+  DEFAULT_ANDROID_TARGET_ARCH_ABI = 'arm64-v8a'
+  DEFAULT_ANDROID_TARGET_PLATFORM = 'android-21'
+  DEFAULT_GCC_VERSION   = '4.9'
+  DEFAULT_CLANG_VERSION = '3.5'
   GCC_COMMON_CFLAGS  = %W(-ffunction-sections -funwind-tables -fstack-protector)
   GCC_COMMON_LDFLAGS = %W()
 
