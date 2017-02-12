@@ -232,6 +232,37 @@ Set ANDROID_PLATFORM environment variable or set :platform parameter
     flags
   end
 
+  def ldflags
+    flags = []
+
+    flags += %W(--sysroot="#{sysroot}")
+    case toolchain
+    when :gcc
+      flags += %W(-mandroid)
+      case arch
+      when /armeabi-v7a/  then flags += %W(-march=armv7-a)
+      when /armeabi/      then flags += %W(-march=armv5te)
+      when /arm64-v8a/    then flags += %W(-march=armv8-a)
+      when /x86_64/       then flags += %W(-march=x86-64)
+      when /x86/          then flags += %W(-march=i686)
+      when /mips64/       then flags += %W(-march=mips64)
+      when /mips/         then flags += %W(-march=mips32)
+      end
+    when :clang
+      flags += %W(-gcc-toolchain "#{gcc_toolchain_path.to_s}")
+      case arch
+      when /armeabi-v7a/  then flags += %W(-target armv7-none-linux-androideabi)
+      when /armeabi/      then flags += %W(-target armv5te-none-linux-androideabi)
+      when /arm64-v8a/    then flags += %W(-target aarch64-none-linux-android)
+      when /x86_64/       then flags += %W(-target x86_64-none-linux-android)
+      when /x86/          then flags += %W(-target i686-none-linux-android)
+      when /mips64/       then flags += %W(-target mips64el-none-linux-android)
+      when /mips/         then flags += %W(-target mipsel-none-linux-android)
+      end
+    end
+
+    flags
+  end
 end
 
 MRuby::Toolchain.new(:android) do |conf, params|
@@ -246,5 +277,5 @@ MRuby::Toolchain.new(:android) do |conf, params|
 
   conf.archiver.command = android.ar
   conf.linker.command = android.cc
-  conf.linker.flags = []
+  conf.linker.flags = android.ldflags
 end
